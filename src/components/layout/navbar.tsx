@@ -163,6 +163,13 @@ export function Navbar() {
                     {link.label}
                   </Link>
                 ))}
+                <div className="h-px bg-border my-2" />
+                <Link
+                  href="/account"
+                  className="block px-2 py-1 text-lg font-medium hover:text-primary transition-colors"
+                >
+                  My Account
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>

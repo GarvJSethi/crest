@@ -32,6 +32,16 @@ export default async function ProductsPage(props: {
 
         {/* Filters and Grid Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          
+          {/* Mobile Categories (Horizontal Scroll) */}
+          <div className="lg:hidden flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 gap-2 snap-x scrollbar-hide">
+            <a href="/products" className="shrink-0 snap-start px-4 py-2 bg-secondary text-secondary-foreground rounded-full text-sm font-medium whitespace-nowrap">All</a>
+            <a href="/categories/shirts" className="shrink-0 snap-start px-4 py-2 border hover:bg-secondary/50 rounded-full text-sm font-medium whitespace-nowrap">Shirts</a>
+            <a href="/categories/t-shirts" className="shrink-0 snap-start px-4 py-2 border hover:bg-secondary/50 rounded-full text-sm font-medium whitespace-nowrap">T-Shirts</a>
+            <a href="/categories/jeans" className="shrink-0 snap-start px-4 py-2 border hover:bg-secondary/50 rounded-full text-sm font-medium whitespace-nowrap">Jeans</a>
+            <a href="/categories/jackets" className="shrink-0 snap-start px-4 py-2 border hover:bg-secondary/50 rounded-full text-sm font-medium whitespace-nowrap">Jackets</a>
+          </div>
+
           {/* Sidebar Filters (Desktop) */}
           <aside className="hidden lg:block w-full">
             <div className="sticky top-24 border rounded-xl p-6">
