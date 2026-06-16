@@ -71,3 +71,10 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type SignupInput = z.infer<typeof signupSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
+export const verifyOtpSchema = z.object({
+  email: z.string().email(),
+  token: z.string().length(6, "Verification code must be 6 digits"),
+});
+
+export type VerifyOtpInput = z.infer<typeof verifyOtpSchema>;
