@@ -21,6 +21,7 @@ export function Navbar() {
   const { setTheme, theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -144,7 +145,7 @@ export function Navbar() {
 
       <div className="container mx-auto px-4 sm:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center gap-4 lg:hidden">
-          <Sheet>
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger className="inline-flex items-center justify-center h-9 w-9 rounded-md hover:bg-accent hover:text-accent-foreground">
               <Menu className="h-5 w-5" />
               <span className="sr-only">Menu</span>
@@ -158,6 +159,7 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="block px-2 py-1 text-lg font-medium hover:text-primary transition-colors"
                   >
                     {link.label}
@@ -166,6 +168,7 @@ export function Navbar() {
                 <div className="h-px bg-border my-2" />
                 <Link
                   href="/account"
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className="block px-2 py-1 text-lg font-medium hover:text-primary transition-colors"
                 >
                   My Account
