@@ -10,7 +10,7 @@ export const metadata = {
 export default async function AdminOrdersPage() {
   const supabase = await createClient();
 
-  const { data: orders, error } = await supabase
+  const { data: rawOrders, error } = await supabase
     .from("orders")
     .select(`
       id,
@@ -18,9 +18,11 @@ export default async function AdminOrdersPage() {
       total_amount,
       status,
       user_id,
-      profiles:user_id(full_name, email)
+      profiles!orders_user_id_fkey(full_name, email)
     `)
     .order("created_at", { ascending: false });
+
+  const orders = rawOrders as any[];
 
   if (error) {
     return <div>Error loading orders.</div>;

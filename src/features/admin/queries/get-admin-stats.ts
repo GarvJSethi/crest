@@ -35,7 +35,7 @@ export async function getAdminStats() {
   }
 
   // 3. Get recent 5 orders for the dashboard
-  const { data: recentOrders } = await supabase
+  const { data: rawRecentOrders } = await supabase
     .from("orders")
     .select(`
       id,
@@ -43,10 +43,12 @@ export async function getAdminStats() {
       total_amount,
       status,
       user_id,
-      profiles:user_id(full_name, email)
+      profiles!orders_user_id_fkey(full_name, email)
     `)
     .order("created_at", { ascending: false })
     .limit(5);
+
+  const recentOrders = rawRecentOrders as any[];
 
   return {
     totalRevenue,
