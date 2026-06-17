@@ -14,8 +14,8 @@ import Image from "next/image";
 export function ProductForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,11 +23,19 @@ export function ProductForm() {
   );
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files);
+      setImageFiles((prev) => [...prev, ...newFiles]);
+      setImagePreviews((prev) => [
+        ...prev,
+        ...newFiles.map((file) => URL.createObjectURL(file)),
+      ]);
     }
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -41,25 +49,27 @@ export function ProductForm() {
     const description = formData.get("description") as string;
 
     try {
-      let imageUrl = null;
+      let uploadedUrls: string[] = [];
 
-      // 1. Upload Image if exists
-      if (imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `${slug}/${fileName}`;
+      // 1. Upload Images
+      if (imageFiles.length > 0) {
+        for (const file of imageFiles) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${Math.random()}.${fileExt}`;
+          const filePath = `${slug}/${fileName}`;
 
-        const { error: uploadError, data: uploadData } = await supabase.storage
-          .from("product-images")
-          .upload(filePath, imageFile);
+          const { error: uploadError } = await supabase.storage
+            .from("product-images")
+            .upload(filePath, file);
 
-        if (uploadError) throw new Error("Failed to upload image. Does the bucket exist?");
+          if (uploadError) throw new Error("Failed to upload image. Does the bucket exist?");
 
-        const { data: publicUrlData } = supabase.storage
-          .from("product-images")
-          .getPublicUrl(filePath);
-          
-        imageUrl = publicUrlData.publicUrl;
+          const { data: publicUrlData } = supabase.storage
+            .from("product-images")
+            .getPublicUrl(filePath);
+            
+          uploadedUrls.push(publicUrlData.publicUrl);
+        }
       }
 
       // 2. Create Product
@@ -78,16 +88,18 @@ export function ProductForm() {
 
       if (productError) throw productError;
 
-      // 3. Create Product Image Entry
-      if (imageUrl && product) {
+      // 3. Create Product Image Entries
+      if (uploadedUrls.length > 0 && product) {
+        const imageEntries = uploadedUrls.map((url, index) => ({
+          product_id: product.id,
+          url: url,
+          is_primary: index === 0,
+          display_order: index + 1,
+        }));
+        
         const { error: imageError } = await supabase
           .from("product_images")
-          .insert({
-            product_id: product.id,
-            url: imageUrl,
-            is_primary: true,
-            display_order: 1,
-          });
+          .insert(imageEntries);
 
         if (imageError) throw imageError;
       }
@@ -123,32 +135,32 @@ export function ProductForm() {
         </div>
 
         <div className="grid gap-2">
-          <Label>Product Image</Label>
-          <div className="flex items-center gap-4">
-            {imagePreview ? (
-              <div className="relative h-32 w-32 border rounded-md overflow-hidden bg-muted">
-                <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+          <Label>Product Images</Label>
+          <div className="flex flex-wrap items-center gap-4">
+            {imagePreviews.map((preview, index) => (
+              <div key={index} className="relative h-32 w-32 border rounded-md overflow-hidden bg-muted shrink-0">
+                <Image src={preview} alt={`Preview ${index}`} fill className="object-cover" />
                 <button
                   type="button"
-                  onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  onClick={() => removeImage(index)}
                   className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-1 hover:bg-black/80"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <Upload className="h-6 w-6 text-muted-foreground mb-2" />
-                  <span className="text-xs text-muted-foreground">Upload</span>
-                </div>
-                <input type="file" className="hidden" accept="image/*" onChange={handleImageChange} />
-              </label>
-            )}
-            <div className="text-sm text-muted-foreground">
-              We recommend 4:5 aspect ratio images.<br/>
-              Requires "product-images" bucket in Supabase.
-            </div>
+            ))}
+            <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed rounded-md cursor-pointer hover:bg-muted/50 transition-colors shrink-0">
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <Upload className="h-6 w-6 text-muted-foreground mb-2" />
+                <span className="text-xs text-muted-foreground">Upload</span>
+              </div>
+              <input type="file" className="hidden" accept="image/*" multiple onChange={handleImageChange} />
+            </label>
+          </div>
+          <div className="text-sm text-muted-foreground mt-2">
+            You can select multiple images. We recommend 4:5 aspect ratio images.<br/>
+            Requires "product-images" bucket in Supabase.
+          </div>
           </div>
         </div>
       </div>
