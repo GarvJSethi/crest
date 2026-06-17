@@ -29,6 +29,10 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
         inventory (
           quantity
         )
+      ),
+      product_images (
+        url,
+        color_variant
       )
     `)
     .eq("id", id)
@@ -108,7 +112,12 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
                           <span className={stock <= 5 ? "text-red-500" : ""}>{stock}</span>
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <EditVariantModal productId={product.id} variant={variant} stock={stock} />
+                          <EditVariantModal 
+                            productId={product.id} 
+                            variant={variant} 
+                            stock={stock} 
+                            existingImage={product.product_images?.find((img: any) => img.color_variant === variant.color)?.url}
+                          />
                         </td>
                       </tr>
                     );
