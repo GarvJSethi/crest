@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { AddVariantForm } from "@/features/admin/components/add-variant-form";
 import { EditVariantModal } from "@/features/admin/components/edit-variant-modal";
+import { ProductImageManager } from "@/features/admin/components/product-image-manager";
 
 export const metadata = {
   title: "Product Details | Admin",
@@ -31,6 +32,7 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
         )
       ),
       product_images (
+        id,
         url,
         color_variant
       )
@@ -75,6 +77,8 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
               </div>
             </div>
           </div>
+
+          <ProductImageManager productId={product.id} images={product.product_images || []} />
         </div>
 
         <div className="md:col-span-2 space-y-6">
